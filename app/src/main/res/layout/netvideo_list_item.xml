@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:gravity="center_vertical">
+    
+    <RelativeLayout
+        android:id="@+id/rl_img"
+        android:layout_width="120dp"
+        android:layout_height="80dp"
+        android:layout_centerVertical="true">
+        <ImageView
+            android:id="@+id/iv_videoimage"
+            android:layout_width="120dp"
+            android:layout_height="80dp"
+            android:layout_marginLeft="5dp"
+            android:src="@drawable/video_default_icon"
+            android:scaleType="fitXY"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/center_collect_play"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="10dp"
+            android:layout_marginRight="10dp"/>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_marginLeft="5dp"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@id/rl_img"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tv_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:maxLines="1"
+            android:textColor="@android:color/black"
+            android:text="@string/moviename"
+            android:layout_marginBottom="6dp"/>
+        <TextView
+            android:id="@+id/tv_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="#55000000"
+            android:text="@string/videodesc"
+            android:maxLines="1"/>
+    </LinearLayout>
+
+</RelativeLayout>

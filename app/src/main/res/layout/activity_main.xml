@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fl_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <RelativeLayout
+            android:background="#5f9f9f"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MobilePlayer"
+                android:textSize="30sp"
+                android:layout_centerHorizontal="true"/>
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/fl_main_taglist"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"></FrameLayout>
+
+        <RadioGroup
+            android:background="#11000000"
+            android:id="@+id/rg_main_tag"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+            <RadioButton
+                android:id="@+id/rb_main_video"
+                android:text="@string/video"
+                android:drawableTop="@drawable/rb_main_video_selector"
+                style="@style/radiobutton_style"/>
+            <RadioButton
+                android:id="@+id/rb_main_audio"
+                android:text="@string/audio"
+                android:drawableTop="@drawable/rb_main_audio_selector"
+                style="@style/radiobutton_style"/>
+            <RadioButton
+                android:id="@+id/rb_main_netvideo"
+                android:text="@string/netvideo"
+                android:drawableTop="@drawable/rb_main_netvideo_selector"
+                style="@style/radiobutton_style"/>
+        </RadioGroup>
+    </LinearLayout>
+
+
+</FrameLayout>

@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">MobilePlayer</string>
+    <string name="video">Video</string>
+    <string name="audio">Audio</string>
+    <string name="netvideo">NetVideo</string>
+    <string name="videonoitem">没有发现视频</string>
+    <string name="menu_exit">Exit</string>
+    <string name="moviename">视频名称</string>
+    <string name="videodesc">视频描述</string>
+    <string name="videoloading">加载中。。。   0 KB/s</string>
+</resources>

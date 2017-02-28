@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.mobileplayer.VideoPlayerActivity">
@@ -48,32 +49,6 @@
             android:layout_gravity="center_vertical"/>
 
     </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/ll_voice"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/ll_video_top"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/volume_max_icon"/>
-
-        <SeekBar
-            android:id="@+id/sb_voice"
-            android:maxHeight="8dp"
-            android:minHeight="8dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="20dp"
-            android:progressDrawable="@drawable/progress_horizontal"
-            android:thumb="@drawable/progress_thumb"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-
 
     <LinearLayout
         android:id="@+id/ll_video_controler"
@@ -143,5 +118,9 @@
     <include layout="@layout/ll_buffer" android:id="@+id/ll_buffer"/>
 
     <include layout="@layout/ll_video_loading" android:id="@+id/ll_loading" />
+
+    <include layout="@layout/gesture_volume_layout" android:id="@+id/gesture_volume_layout" />
+    <include layout="@layout/gesture_bright_layout" android:id="@+id/gesture_bright_layout" />
+    <include layout="@layout/gesture_progress_layout" android:id="@+id/gesture_progress_layout" />
 
 </RelativeLayout>

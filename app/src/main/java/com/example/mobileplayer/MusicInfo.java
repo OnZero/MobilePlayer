@@ -12,6 +12,7 @@ public class MusicInfo implements Serializable {
     private long size;
     private long duration;
     private String path;
+    private String album_id;
 
     public String getTitle() {
         return title;
@@ -61,6 +62,15 @@ public class MusicInfo implements Serializable {
                 ", size=" + size +
                 ", duration=" + duration +
                 ", path='" + path + '\'' +
+                ", album_id='" + album_id + '\'' +
                 '}';
+    }
+
+    public String getAlbum_id() {
+        return album_id;
+    }
+
+    public void setAlbum_id(String album_id) {
+        this.album_id = album_id;
     }
 }

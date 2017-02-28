@@ -69,4 +69,22 @@ public class Utils {
         netSpeed = String.valueOf(speed)+ "KB/s";
         return netSpeed;
     }
+
+    public static String getTimeStr(int timeInt) {
+        int mi = 1 * 60;
+        int hh = mi * 60;
+
+        long hour = (timeInt) / hh;
+        long minute = (timeInt - hour * hh) / mi;
+        long second = timeInt - hour * hh - minute * mi;
+
+        String strHour = hour < 10 ? "0" + hour : "" + hour;
+        String strMinute = minute < 10 ? "0" + minute : "" + minute;
+        String strSecond = second < 10 ? "0" + second : "" + second;
+        if (hour > 0) {
+            return strHour + ":" + strMinute + ":" + strSecond;
+        } else {
+            return strMinute + ":" + strSecond;
+        }
+    }
 }

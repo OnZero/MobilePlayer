@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -76,6 +77,7 @@ public class NetVideoFreagment extends Fragment implements AdapterView.OnItemCli
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
                 showData();
+                Toast.makeText(context,"联网失败",Toast.LENGTH_SHORT).show();
             }
 
             @Override

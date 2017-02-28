@@ -7,6 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -39,7 +43,11 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
     private final int SHOW_LYRIC=2;
     private Utils utils;
     private boolean notification;
+    //歌词
     private ShowLryicView showLyricView;
+    //频谱
+    private BaseVisualizerView baseVisualizerView;
+    private Visualizer mVisualizer;
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -114,6 +122,21 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+        setupVisualizerFxAndUi();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //释放频谱
+        if(mVisualizer!=null){
+            mVisualizer.release();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         handler.removeCallbacks(null);
         //注销广播
@@ -155,12 +178,15 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
         tv_audio_endtime = (TextView) findViewById(R.id.tv_audio_endtime);
         ib_audio_playmode = (ImageButton) findViewById(R.id.ib_audio_playmode);
         showLyricView = (ShowLryicView) findViewById(R.id.showLyricView);
+        baseVisualizerView = (BaseVisualizerView) findViewById(R.id.baseVisualizerView);
         utils = new Utils();
         ib_playandpause.setOnClickListener(this);
         ib_audio_next.setOnClickListener(this);
         ib_audio_pre.setOnClickListener(this);
         iv_music_back.setOnClickListener(this);
         ib_audio_playmode.setOnClickListener(this);
+        showLyricView.setOnClickListener(this);
+        baseVisualizerView.setOnClickListener(this);
         myReceiver = new MyReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MusicPlayerService.OPENAUDIO);
@@ -212,6 +238,14 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
                 break;
             case R.id.iv_music_back:
                 setMainIntent();
+                break;
+            case R.id.showLyricView:
+                showLyricView.setVisibility(View.GONE);
+                baseVisualizerView.setVisibility(View.VISIBLE);
+                break;
+            case R.id.baseVisualizerView:
+                baseVisualizerView.setVisibility(View.GONE);
+                showLyricView.setVisibility(View.VISIBLE);
                 break;
         }
     }
@@ -307,6 +341,19 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
 
     }
 
+    //设置频谱
+    private void setupVisualizerFxAndUi(){
+        try {
+            int audioSessionid = service.getAudioSessionId();
+            mVisualizer = new Visualizer(audioSessionid);
+            mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+            baseVisualizerView.setVisualizer(mVisualizer);
+            mVisualizer.setEnabled(true);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
     class MyReceiver extends BroadcastReceiver{
 
         @Override
@@ -315,9 +362,11 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
             showLyric();
             showViewData();
             checkPlayMode();
+            setupVisualizerFxAndUi();
         }
     }
 
+    //显示歌词
     private void showLyric() {
         LyricUtils lyricUtils = new LyricUtils();
         try {
@@ -347,6 +396,8 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
             tv_audio_name.setText(service.getName());
             sb_audio_progress.setMax(service.getDuration());
             handler.sendEmptyMessage(PROGRESS);
+
+
         } catch (RemoteException e) {
             e.printStackTrace();
         }

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,6 +20,7 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,50 +36,59 @@ import io.vov.vitamio.widget.VideoView;
 public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPreparedListener,MediaPlayer.OnErrorListener,
         MediaPlayer.OnCompletionListener,View.OnClickListener ,SeekBar.OnSeekBarChangeListener,MediaPlayer.OnInfoListener{
 
+    //private RelativeLayout root_layout;
     private VideoView videoview;
     private Uri uri;//播放地址
     private LinearLayout ll_video_top;
-    private TextView tv_name,tv_netspeed;
-    private ImageView iv_dianchi;
+    private TextView tv_name,tv_netspeed,tv_gesture_volume,tv_gesture_bright,tv_gesture_progress;
+    private ImageView iv_dianchi,iv_gesture_volume,iv_gesture_bright,iv_gesture_progress;
     private TextView tv_systemtime;
-    private LinearLayout ll_video_controler,ll_buffer;
+    private LinearLayout ll_video_controler,ll_buffer,gesture_volume_layout,gesture_bright_layout,gesture_progress_layout;
     private TextView tv_currentposition;
     private SeekBar sb_progress;
     private TextView tv_endtime;
     private ImageButton ib_video_play;
     private ImageButton ib_video_pause;
-    private final int PROGRESS=0; //区分handler
+    private final int PROGRESS=0; //播放进度消息
     private Utils utils;
     private MyReceiver myReceiver;
     private ArrayList<MediaInfo> mediaItems; //传递过来的视频列表
     private int position; //位置
     private ImageButton ib_video_rewin;
     private ImageButton ib_video_recon;
-    private GestureDetector detector;
+    private GestureDetector detector; //手势识别
     private boolean isShowController=false;
-    private final int HIDECONTROLLER=1;
+    private final int HIDECONTROLLER=1; //隐藏控制条
     private final int SHOWNETSPEED = 2;
     private AudioManager am;
+    //当前音量
     private int currentVoice;
+    //最大音量
     private int maxVoice;
-    private SeekBar sb_voice;
-    private float startX;
-    private float startY;
-    private float touchRang;
-    private int tVol;
-    private int screenwidth;
-    private int screenheight;
-    private LinearLayout ll_voice;
+    private int screenwidth; //屏幕宽度
+    private int screenheight; //屏幕高度
     /**
      * 播放位置*/
     private int currentPosition;
-    private float endX;
-    private float endY;
     //是否是网络视频
     private boolean isNetUri;
 
     private TextView tv_loadingspeed;
     private LinearLayout ll_loading;
+    private boolean firstScroll = false;
+    /**
+     * 手势辨别**/
+    private int GESTURE_FLAG = 10;
+    private int GESTURE_MODIFY_PROGRESS = 11;
+    private int GESTURE_MODIFY_VOLUME = 12;
+    private int GESTURE_MODIFY_BRIGHT = 13;
+
+    private static final float STEP_PROGRESS = 2f;// 设定进度滑动时的步长，避免每次滑动都改变，导致改变过快
+    private static final float STEP_VOLUME = 2f;// 协调音量滑动时的步长，避免每次滑动都改变，导致改变过快
+
+    private float mBrightness = -1f; // 亮度
+
+    private int playingTime,videoTotalTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,12 +107,15 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
     }
 
     private void setData() {
+        //内部调用
         if(mediaItems!=null && mediaItems.size()>0){
             MediaInfo mediaInfo = mediaItems.get(position);
             tv_name.setText(mediaInfo.getName());
             isNetUri = utils.isNetUri(mediaInfo.getPath());
             videoview.setVideoPath(mediaInfo.getPath());
+
         }else if(uri !=null){
+            //外部调用
             tv_name.setText(uri.toString());
             isNetUri = utils.isNetUri(uri.toString());
             videoview.setVideoURI(uri);
@@ -152,8 +166,6 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         am = (AudioManager) getSystemService(AUDIO_SERVICE);
         currentVoice = am.getStreamVolume(AudioManager.STREAM_MUSIC);
         maxVoice = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        sb_voice.setMax(maxVoice);
-        sb_voice.setProgress(currentVoice);
     }
 
     //视频监听卡
@@ -202,6 +214,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
 
     private void findView() {
         MyActivityManager.getInstance().addActivity(this);
+        //root_layout = (RelativeLayout) findViewById(R.id.root_layout);
         videoview = (VideoView) findViewById(R.id.surface_view);
         ll_video_top = (LinearLayout) findViewById(R.id.ll_video_top);
         ll_buffer = (LinearLayout) findViewById(R.id.ll_buffer);
@@ -217,22 +230,39 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         ib_video_pause = (ImageButton) findViewById(R.id.ib_video_pause);
         ib_video_rewin = (ImageButton) findViewById(R.id.ib_video_rewin);
         ib_video_recon = (ImageButton) findViewById(R.id.ib_video_recon);
-        sb_voice = (SeekBar) findViewById(R.id.sb_voice);
         tv_loadingspeed = (TextView) findViewById(R.id.tv_loadingspeed);
         ll_loading = (LinearLayout) findViewById(R.id.ll_loading);
+        gesture_volume_layout = (LinearLayout) findViewById(R.id.gesture_volume_layout);
+        gesture_bright_layout = (LinearLayout) findViewById(R.id.gesture_bright_layout);
+        gesture_progress_layout = (LinearLayout) findViewById(R.id.gesture_progress_layout);
+        am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        //音量图标
+        iv_gesture_volume = (ImageView) findViewById(R.id.iv_gesture_volume);
+        //亮度图标
+        iv_gesture_bright = (ImageView) findViewById(R.id.iv_gesture_bright);
+        //滑动快进快退图标
+        iv_gesture_progress = (ImageView) findViewById(R.id.iv_gesture_progress);
+        //滑动音量文字显示
+        tv_gesture_volume = (TextView) findViewById(R.id.tv_gesture_volume);
+        //滑动亮度文字显示
+        tv_gesture_bright = (TextView) findViewById(R.id.tv_gesture_bright);
+        //滑动进度文字显示
+        tv_gesture_progress = (TextView) findViewById(R.id.tv_gesture_progress);
         utils = new Utils();
         ib_video_play.setOnClickListener(this);
         ib_video_pause.setOnClickListener(this);
         ib_video_rewin.setOnClickListener(this);
         ib_video_recon.setOnClickListener(this);
         sb_progress.setOnSeekBarChangeListener(this);//播放进度
-        sb_voice.setOnSeekBarChangeListener(this);
         //手势
         detector = new GestureDetector(this,new MySimpleOnGestureListener());
         screenwidth = getWindowManager().getDefaultDisplay().getWidth();
         screenheight = getWindowManager().getDefaultDisplay().getHeight();
-        ll_voice = (LinearLayout) findViewById(R.id.ll_voice);
         handler.sendEmptyMessage(SHOWNETSPEED);
+        //隐藏滑动显示
+        gesture_volume_layout.setVisibility(View.GONE);
+        gesture_bright_layout.setVisibility(View.GONE);
+        gesture_progress_layout.setVisibility(View.GONE);
     }
 
 
@@ -289,6 +319,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         handler.sendEmptyMessage(PROGRESS);
         hideMediaController();
         ll_loading.setVisibility(View.GONE);
+
     }
 
     @Override
@@ -398,6 +429,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
 
     }
 
+    //设置播放状态
     private void setPlayStage(boolean b) {
         if(b){
             videoview.start();
@@ -412,11 +444,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        if(seekBar==sb_voice){
-            if(fromUser){
-                updataVoice(progress);
-            }
-        }else if(seekBar==sb_progress){
+        if(seekBar==sb_progress){
             if(fromUser){
                 videoview.seekTo(progress);
             }
@@ -436,80 +464,26 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        detector.onTouchEvent(event);
-        switch (event.getAction()){
-            case MotionEvent.ACTION_DOWN:
-                startX = event.getX();
-                startY = event.getY();
-                tVol = am.getStreamVolume(AudioManager.STREAM_MUSIC);
-                touchRang = screenheight;
-                handler.removeMessages(HIDECONTROLLER);
-                break;
-            case MotionEvent.ACTION_MOVE:
-                endX = event.getX();
-                endY = event.getY();
-                if(endX < screenwidth/2){
-                    //调节亮度
-                    final double FLING_MIN_DISTANCE = 0.5;
-                    final double FLING_MIN_VELOCITY = 0.5;
-                    if(startY - endY > FLING_MIN_DISTANCE && Math.abs(startY - endY)> FLING_MIN_VELOCITY){
-                        setBrightness(20);
-                    }
-                    if(startY - endY < FLING_MIN_DISTANCE && Math.abs(startY - endY)> FLING_MIN_VELOCITY){
-                        setBrightness(-20);
-                    }
-                }else{
-                    //调节音量
-                    float delta = (startY - event.getY())/touchRang*maxVoice;
-                    int voice = (int) Math.min(Math.max(delta+tVol,0),maxVoice);
-                    if(delta != 0){
-                        updataVoice(voice);
-                    }
-                }
-
-                if(startX  - endX > 20){
-
-                }
-
-                break;
-            case MotionEvent.ACTION_UP:
-                handler.sendEmptyMessageDelayed(HIDECONTROLLER,4000);
-                break;
+        if(event.getAction() == MotionEvent.ACTION_UP){
+            GESTURE_FLAG = 0;
+            //隐藏音量、亮度和进度的布局
+            gesture_volume_layout.setVisibility(View.GONE);
+            gesture_bright_layout.setVisibility(View.GONE);
+            gesture_progress_layout.setVisibility(View.GONE);
         }
-        return super.onTouchEvent(event);
+        return detector.onTouchEvent(event);
     }
 
-    /**设置亮度**/
-    private void setBrightness(float i) {
-        WindowManager.LayoutParams lp = getWindow().getAttributes();
-        lp.screenBrightness = lp.screenBrightness + i / 255.0f;
-        if(lp.screenBrightness > 1 ){
-            lp.screenBrightness = 1;
-        }else if(lp.screenBrightness < 0.1){
-            lp.screenBrightness = (float) 0.1;
-        }
-        getWindow().setAttributes(lp);
-    }
 
     private void isShowMediaController(){
             ll_video_top.setVisibility(View.VISIBLE);
             ll_video_controler.setVisibility(View.VISIBLE);
-            sb_voice.setVisibility(View.VISIBLE);
-            ll_voice.setVisibility(View.VISIBLE);
             isShowController=false;
     }
     private void hideMediaController(){
         ll_video_top.setVisibility(View.GONE);
         ll_video_controler.setVisibility(View.GONE);
-        sb_voice.setVisibility(View.GONE);
-        ll_voice.setVisibility(View.GONE);
         isShowController=true;
-    }
-
-    private void updataVoice(int progress) {
-        am.setStreamVolume(AudioManager.STREAM_MUSIC,progress,0);
-        sb_voice.setProgress(progress);
-        currentVoice=progress;
     }
 
     //手势识别器
@@ -526,25 +500,137 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
             }
             return super.onSingleTapConfirmed(e);
         }
+        //手指双击时触发
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            if(videoview.isPlaying()){
+                setPlayStage(false);
+            }else{
+                setPlayStage(true);
+            }
+            return super.onDoubleTap(e);
+        }
+
+        //手指一按下触发
+        @Override
+        public boolean onDown(MotionEvent e) {
+            //手指第一次触碰到屏幕
+            firstScroll = true;
+            handler.removeMessages(HIDECONTROLLER);
+            playingTime = (int) videoview.getCurrentPosition();
+            videoTotalTime = (int) videoview.getDuration();
+            return super.onDown(e);
+        }
+        //手指在屏幕上滑动触发
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            float mOldX = e1.getX(), mOldY = e1.getY();
+            int y = (int) e2.getRawY();
+            if(firstScroll){
+                /**
+                 * 避免X轴和Y周的滑动操作混乱**/
+                if(Math.abs(distanceX)>=Math.abs(distanceY)){
+                    //此处修改视频的进度
+                    gesture_progress_layout.setVisibility(View.VISIBLE);
+                    gesture_volume_layout.setVisibility(View.GONE);
+                    gesture_bright_layout.setVisibility(View.GONE);
+                    GESTURE_FLAG = GESTURE_MODIFY_PROGRESS;
+                }else{
+                    //此处修改音量或者是亮度
+                    if (mOldX > screenwidth * 3.0 / 5) {// 音量
+                        gesture_volume_layout.setVisibility(View.VISIBLE);
+                        gesture_bright_layout.setVisibility(View.GONE);
+                        gesture_progress_layout.setVisibility(View.GONE);
+                        GESTURE_FLAG = GESTURE_MODIFY_VOLUME;
+                    } else if (mOldX < screenwidth * 2.0 / 5) {// 亮度
+                        gesture_bright_layout.setVisibility(View.VISIBLE);
+                        gesture_volume_layout.setVisibility(View.GONE);
+                        gesture_progress_layout.setVisibility(View.GONE);
+                        GESTURE_FLAG = GESTURE_MODIFY_BRIGHT;
+                    }
+                }
+            }
+
+            if(GESTURE_FLAG == GESTURE_MODIFY_PROGRESS){
+                //改变进度
+                // distanceX=lastScrollPositionX-currentScrollPositionX，因此为正时是快进
+                if (Math.abs(distanceX) > Math.abs(distanceY)) {// 横向移动大于纵向移动
+                    if (distanceX >= DensityUtil.dip2px(VideoPlayerActivity.this, STEP_PROGRESS)) {// 快退，用步长控制改变速度，可微调
+                        iv_gesture_progress.setImageResource(R.drawable.iv_back);
+                        if (playingTime > 3000) {// 避免为负
+                            playingTime -= 3000;// scroll方法执行一次快退3秒
+                        } else {
+                            playingTime = 0;
+                        }
+                    } else if (distanceX <= -DensityUtil.dip2px(VideoPlayerActivity.this, STEP_PROGRESS)) {// 快进
+                        iv_gesture_progress.setImageResource(R.drawable.iv_fast);
+                        if (playingTime < videoTotalTime - 16000) {// 避免超过总时长
+                            playingTime += 3000;// scroll执行一次快进3秒
+                        } else {
+                            playingTime = videoTotalTime - 10000;
+                        }
+                    }
+                    if (playingTime < 0) {
+                        playingTime = 0;
+                    }
+                    videoview.seekTo(playingTime);
+                    tv_gesture_progress.setText(utils.stringForTime(playingTime) + "/" + utils.stringForTime(videoTotalTime));
+                }
+            }else if(GESTURE_FLAG == GESTURE_MODIFY_VOLUME){
+                //音量
+                currentVoice = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+                if(Math.abs(distanceY) > Math.abs(distanceX)){
+                    if (distanceY >= DensityUtil.dip2px(VideoPlayerActivity.this, STEP_VOLUME)){
+                        if(currentVoice < maxVoice){
+                            currentVoice++;
+                        }
+                        iv_gesture_volume.setImageResource(R.drawable.ic_volume);
+                    }else if (distanceY <= -DensityUtil.dip2px(VideoPlayerActivity.this, STEP_VOLUME)) {// 音量调小
+                        if (currentVoice > 0) {
+                            currentVoice--;
+                            if (currentVoice == 0) {// 静音，设定静音独有的图片
+                                iv_gesture_volume.setImageResource(R.drawable.ic_volume_off);
+                            }
+                        }
+                    }
+                    int percentage = (currentVoice * 100) / maxVoice;
+                    tv_gesture_volume.setText(percentage+"%");
+                    am.setStreamVolume(AudioManager.STREAM_MUSIC,currentVoice, 0);
+                }
+            }else if(GESTURE_FLAG == GESTURE_MODIFY_BRIGHT){
+                //亮度
+                iv_gesture_bright.setImageResource(R.drawable.ic_brightness);
+                if (mBrightness < 0) {
+                    mBrightness = getWindow().getAttributes().screenBrightness;
+                    if (mBrightness <= 0.00f)
+                        mBrightness = 0.50f;
+                    if (mBrightness < 0.01f)
+                        mBrightness = 0.01f;
+                }
+                WindowManager.LayoutParams lpa = getWindow().getAttributes();
+                lpa.screenBrightness = mBrightness + (mOldY - y) / screenheight;
+                if (lpa.screenBrightness > 1.0f)
+                    lpa.screenBrightness = 1.0f;
+                else if (lpa.screenBrightness < 0.01f)
+                    lpa.screenBrightness = 0.01f;
+                getWindow().setAttributes(lpa);
+                tv_gesture_bright.setText((int) (lpa.screenBrightness * 100) + "%");
+            }
+            firstScroll = false;
+            return super.onScroll(e1, e2, distanceX, distanceY);
+        }
+        //手指触摸松开时触摸
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            handler.sendEmptyMessageDelayed(HIDECONTROLLER,4000);
+            return super.onSingleTapUp(e);
+        }
     }
 
     /**
      * 监听物理音量键**/
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN){
-            currentVoice--;
-            updataVoice(currentVoice);
-            handler.removeMessages(HIDECONTROLLER);
-            handler.sendEmptyMessageDelayed(HIDECONTROLLER,4000);
-            return true;
-        }else if(keyCode == KeyEvent.KEYCODE_VOLUME_UP){
-            currentVoice++;
-            updataVoice(currentVoice);
-            handler.removeMessages(HIDECONTROLLER);
-            handler.sendEmptyMessageDelayed(HIDECONTROLLER,4000);
-            return true;
-        }
         return super.onKeyDown(keyCode, event);
     }
 }

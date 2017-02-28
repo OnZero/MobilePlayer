@@ -6,8 +6,10 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.jeremyfeinstein.slidingmenu.lib.app.SlidingFragmentActivity;
@@ -28,6 +30,7 @@ public class MainActivity extends SlidingFragmentActivity implements View.OnClic
     private AudioFragments audioFragments;
     private SlidingMenu slidingMenu;
     private NetVideoFreagment netVideoFreagment;
+    private ImageButton iv_mainmenu;
 
 
     @Override
@@ -59,28 +62,29 @@ public class MainActivity extends SlidingFragmentActivity implements View.OnClic
         MyActivityManager.getInstance().addActivity(this);
         rb_main_video = (RadioButton) findViewById(R.id.rb_main_video);
         rb_main_audio = (RadioButton) findViewById(R.id.rb_main_audio);
+        iv_mainmenu = (ImageButton) findViewById(R.id.iv_mainmenu);
         rb_main_netvideo = (RadioButton) findViewById(R.id.rb_main_netvideo);
         rg_main_tag = (RadioGroup) findViewById(R.id.rg_main_tag);
         fl_main_taglist = (FrameLayout) findViewById(R.id.fl_main_taglist);
         rb_main_video.setOnClickListener(this);
         rb_main_audio.setOnClickListener(this);
         rb_main_netvideo.setOnClickListener(this);
+        iv_mainmenu.setOnClickListener(this);
         rg_main_tag.check(R.id.rb_main_video);
-        setFragments(0);
-    }
-
-    private void setFragments(int fId){
-
         videoFragments = new VideoFragments(this);
         audioFragments = new AudioFragments(this);
         netVideoFreagment = new NetVideoFreagment(this);
+        setFragments(0);
+    }
+
+    private void setFragments(int fid){
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        if(fId==0){
+        if(fid==0){
             fragmentTransaction.replace(R.id.fl_main_taglist, videoFragments, null).commit();
-        }else if(fId==1){
+        }else if(fid==1){
             fragmentTransaction.replace(R.id.fl_main_taglist,audioFragments,null).commit();
-        }else if(fId==2){
+        }else if(fid==2){
             fragmentTransaction.replace(R.id.fl_main_taglist,netVideoFreagment,null).commit();
         }
 
@@ -99,6 +103,8 @@ public class MainActivity extends SlidingFragmentActivity implements View.OnClic
             case R.id.rb_main_netvideo:
                 setFragments(2);
                 break;
+            case R.id.iv_mainmenu:
+                slidingMenu.showMenu();
         }
     }
 
@@ -106,8 +112,13 @@ public class MainActivity extends SlidingFragmentActivity implements View.OnClic
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode == KeyEvent.KEYCODE_MENU){
             slidingMenu.showMenu();
-            //System.out.println(slidingMenu.isShown());
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onDestroy() {
+        //Toast.makeText(this,"DEstroy",Toast.LENGTH_SHORT).show();
+        super.onDestroy();
     }
 }

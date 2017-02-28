@@ -55,7 +55,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
                         MediaStore.Audio.Media.ARTIST,
                         MediaStore.Audio.Media.SIZE,
                         MediaStore.Audio.Media.DURATION,
-                        MediaStore.Audio.Media.DATA};
+                        MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.ALBUM_ID};
                 mediaInfos = new ArrayList<MusicInfo>();
                 ContentResolver resolver = getContentResolver();
                 Cursor cursor = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,musicInfo,null,null,null);
@@ -67,6 +68,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
                         info.setSize(cursor.getLong(2));
                         info.setDuration(cursor.getLong(3));
                         info.setPath(cursor.getString(4));
+                        info.setAlbum_id(cursor.getString(5));
                         mediaInfos.add(info);
                     }
                     cursor.close();
@@ -114,6 +116,11 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
         }
 
         @Override
+        public String getAlbum_id() throws RemoteException {
+            return service.getAlbum_id();
+        }
+
+        @Override
         public String getName() throws RemoteException {
             return service.getName();
         }
@@ -151,6 +158,11 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
         @Override
         public void seekTo(int position) throws RemoteException {
             mediaPlayer.seekTo(position);
+        }
+
+        @Override
+        public int getAudioSessionId() throws RemoteException {
+            return mediaPlayer.getAudioSessionId();
         }
     };
     @Nullable
@@ -200,6 +212,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
         manager.notify(1,notification);
     }
 
+
     private void pause(){
         mediaPlayer.pause();
         manager.cancel(1);
@@ -216,6 +229,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     private String getArtist(){return musicInfo.getArtist();}
 
     private String getName(){return musicInfo.getTitle();}
+
+    private String getAlbum_id(){return musicInfo.getAlbum_id();}
 
     private String getAudioPath(){return musicInfo.getPath();}
 
@@ -350,7 +365,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
         next();
-        Toast.makeText(this,"歌曲出错",Toast.LENGTH_LONG).show();
+        Toast.makeText(this,"歌曲出错",Toast.LENGTH_SHORT).show();
         return false;
     }
 }

@@ -50,7 +50,6 @@ public class NetVideoAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        //★★★★ Bug 用viewHolder会使图片无法显示或者崩溃
         /*ViewHodlers viewHodlers;
         if(convertView==null){
             convertView = View.inflate(context,R.layout.netvideo_list_item,null);

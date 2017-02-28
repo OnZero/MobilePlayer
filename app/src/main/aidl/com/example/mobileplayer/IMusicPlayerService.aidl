@@ -18,6 +18,8 @@ interface IMusicPlayerService {
 
         String getArtist();
 
+        String getAlbum_id();
+
         String getName();
 
         String getAudioPath();
@@ -33,4 +35,6 @@ interface IMusicPlayerService {
         boolean isPlaying();
 
         void seekTo(int position);
+
+        int getAudioSessionId();
 }

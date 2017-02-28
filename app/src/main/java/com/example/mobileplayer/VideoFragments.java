@@ -19,6 +19,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.romainpiel.titanic.library.Titanic;
+import com.romainpiel.titanic.library.TitanicTextView;
+
 import java.util.ArrayList;
 
 /**
@@ -30,7 +33,8 @@ public class VideoFragments extends Fragment implements AdapterView.OnItemClickL
     private View view;
     private ListView lv_video_list;
     private TextView tv_novideo;
-    private ProgressBar pb_loading;
+    //private ProgressBar pb_loading;
+    private Titanic titanic;
     private ArrayList<MediaInfo> mediaInfos;
     private int MSG=0;
 
@@ -45,10 +49,13 @@ public class VideoFragments extends Fragment implements AdapterView.OnItemClickL
                 }else{
                     tv_novideo.setVisibility(View.VISIBLE);
                 }
-                pb_loading.setVisibility(View.GONE);
+                //pb_loading.setVisibility(View.GONE);
+                titanic.cancel();
+                titanic_loading.setVisibility(View.GONE);
             }
         }
     };
+    private TitanicTextView titanic_loading;
 
 
     public VideoFragments(Context context){
@@ -96,7 +103,10 @@ public class VideoFragments extends Fragment implements AdapterView.OnItemClickL
     private void findView() {
         lv_video_list = (ListView) view.findViewById(R.id.lv_video_list);
         tv_novideo = (TextView) view.findViewById(R.id.tv_novideo);
-        pb_loading = (ProgressBar) view.findViewById(R.id.pb_loading);
+        //pb_loading = (ProgressBar) view.findViewById(R.id.pb_loading);
+        titanic = new Titanic();
+        titanic_loading = (TitanicTextView) view.findViewById(R.id.titanic_loading);
+        titanic.start(titanic_loading);
         lv_video_list.setOnItemClickListener(this);
     }
 
@@ -111,4 +121,5 @@ public class VideoFragments extends Fragment implements AdapterView.OnItemClickL
         context.startActivity(intent);
 
     }
+
 }

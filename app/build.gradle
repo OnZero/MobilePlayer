@@ -32,4 +32,5 @@ dependencies {
     compile project(':xutils_library')
     compile files('libs/glide-3.7.0.jar')
     compile files('libs/picasso-2.5.2.jar')
+    compile project(':Titanic_library')
 }

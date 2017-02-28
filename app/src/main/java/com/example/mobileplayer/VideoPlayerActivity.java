@@ -45,6 +45,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
     private TextView tv_systemtime;
     private LinearLayout ll_video_controler,ll_buffer,gesture_volume_layout,gesture_bright_layout,gesture_progress_layout;
     private TextView tv_currentposition;
+    //视频播放进度条
     private SeekBar sb_progress;
     private TextView tv_endtime;
     private ImageButton ib_video_play;
@@ -60,6 +61,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
     private boolean isShowController=false;
     private final int HIDECONTROLLER=1; //隐藏控制条
     private final int SHOWNETSPEED = 2;
+    //音频管理
     private AudioManager am;
     //当前音量
     private int currentVoice;
@@ -87,8 +89,10 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
     private static final float STEP_VOLUME = 2f;// 协调音量滑动时的步长，避免每次滑动都改变，导致改变过快
 
     private float mBrightness = -1f; // 亮度
-
+    /**手势操作时当前播放进度，总时长*/
     private int playingTime,videoTotalTime;
+    //缩放比
+    private int mLayoutSize=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -319,7 +323,6 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         handler.sendEmptyMessage(PROGRESS);
         hideMediaController();
         ll_loading.setVisibility(View.GONE);
-
     }
 
     @Override
@@ -356,6 +359,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         handler.sendEmptyMessageDelayed(HIDECONTROLLER,4000);
     }
 
+
     private void playPreOrNextVideo(boolean isNext) {
         if(isNext){
             if(mediaItems!=null&&mediaItems.size()>0){
@@ -388,6 +392,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         }
 
     }
+
 
     private void setButtonState() {
         if(mediaItems!=null&&mediaItems.size()>0){
@@ -528,7 +533,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
             int y = (int) e2.getRawY();
             if(firstScroll){
                 /**
-                 * 避免X轴和Y周的滑动操作混乱**/
+                 * 避免X轴和Y轴的滑动操作混乱**/
                 if(Math.abs(distanceX)>=Math.abs(distanceY)){
                     //此处修改视频的进度
                     gesture_progress_layout.setVisibility(View.VISIBLE);

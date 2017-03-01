@@ -87,7 +87,17 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
             if(service!=null){
                 try {
                     if(!notification){
-                        service.openAudio(position);
+                        /**屏蔽同个position转入使音乐重新播放**/
+                        int currentPosition = CacheUtils.getMusicPositionCache(MusicPlayerActivity.this,"currentPosition");
+                        if(position !=currentPosition){
+                            service.openAudio(position);
+                            CacheUtils.putMusicPositionCache(MusicPlayerActivity.this,"currentPosition",position);
+                        }else{
+                            showLyric();
+                            showViewData();
+                            checkPlayMode();
+                            setupVisualizerFxAndUi();
+                        }
                     }else{
                         showViewData();
                     }
@@ -138,6 +148,7 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
 
     @Override
     protected void onDestroy() {
+        //System.out.println("onDestroy+++++++++++++++++++++++++++++++++++++++++++++");
         handler.removeCallbacks(null);
         //注销广播
         if(myReceiver!=null){
@@ -345,7 +356,13 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
     private void setupVisualizerFxAndUi(){
         try {
             int audioSessionid = service.getAudioSessionId();
+            if(mVisualizer != null){
+                mVisualizer = null;
+            }
             mVisualizer = new Visualizer(audioSessionid);
+            /**在调用setCaptureSize()函数之前不先设置setEnabled()值为false
+             * 容易报java.lang.IllegalStateException: setCaptureSize() called in wrong state: 2**/
+            mVisualizer.setEnabled(false);
             mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
             baseVisualizerView.setVisualizer(mVisualizer);
             mVisualizer.setEnabled(true);

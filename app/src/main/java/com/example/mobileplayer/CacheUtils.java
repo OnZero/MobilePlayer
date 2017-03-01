@@ -28,4 +28,17 @@ public class CacheUtils {
         SharedPreferences sharedPreferences = context.getSharedPreferences("mobileplayer", context.MODE_PRIVATE);
         return sharedPreferences.getString(key,"");
     }
+
+    //缓存当前所播放的position
+    public static void putMusicPositionCache(Context context,String key,int currentPosition){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("mobileplayer", context.MODE_PRIVATE);
+        sharedPreferences.edit().putInt(key,currentPosition).commit();
+    }
+    //获取上一次缓存的position
+    public static int getMusicPositionCache(Context context,String key){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("mobileplayer", context.MODE_PRIVATE);
+        return sharedPreferences.getInt(key,0);
+    }
+
+
 }

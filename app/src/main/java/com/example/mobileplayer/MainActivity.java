@@ -77,6 +77,7 @@ public class MainActivity extends SlidingFragmentActivity implements View.OnClic
         setFragments(0);
     }
 
+    /**未做fragment屏蔽**/
     private void setFragments(int fid){
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -116,9 +117,4 @@ public class MainActivity extends SlidingFragmentActivity implements View.OnClic
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    protected void onDestroy() {
-        //Toast.makeText(this,"DEstroy",Toast.LENGTH_SHORT).show();
-        super.onDestroy();
-    }
 }

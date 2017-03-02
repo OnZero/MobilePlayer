@@ -40,5 +40,16 @@ public class CacheUtils {
         return sharedPreferences.getInt(key,0);
     }
 
+    //缓存当前所播放的position
+    public static void putShowLyricCache(Context context,String key,boolean isShowLyric){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("mobileplayer", context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(key,isShowLyric).commit();
+    }
+    //获取上一次缓存的position
+    public static boolean getShowLyricCache(Context context,String key){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("mobileplayer", context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(key,false);
+    }
+
 
 }

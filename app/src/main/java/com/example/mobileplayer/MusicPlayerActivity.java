@@ -87,17 +87,17 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
             if(service!=null){
                 try {
                     if(!notification){
-                        /**屏蔽同个position转入使音乐重新播放**/
-                        int currentPosition = CacheUtils.getMusicPositionCache(MusicPlayerActivity.this,"currentPosition");
+                        service.openAudio(position);
+                        /*int currentPosition = CacheUtils.getMusicPositionCache(MusicPlayerActivity.this,"currentPosition");
                         if(position !=currentPosition){
-                            service.openAudio(position);
+
                             CacheUtils.putMusicPositionCache(MusicPlayerActivity.this,"currentPosition",position);
                         }else{
                             showLyric();
                             showViewData();
                             checkPlayMode();
                             setupVisualizerFxAndUi();
-                        }
+                        }*/
                     }else{
                         showViewData();
                     }
@@ -260,6 +260,7 @@ public class MusicPlayerActivity extends Activity implements View.OnClickListene
                 break;
         }
     }
+
 
     private void setMainIntent() {
         Intent intent = new Intent(this, MainActivity.class);

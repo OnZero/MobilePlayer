@@ -20,6 +20,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by lenovo on 2017/1/23.
@@ -65,7 +67,7 @@ public class AudioFragments extends Fragment implements AdapterView.OnItemClickL
     }
 
     private void getMusicList() {
-        new Thread(){
+        /*new Thread(){
             @Override
             public void run() {
                 super.run();
@@ -92,7 +94,35 @@ public class AudioFragments extends Fragment implements AdapterView.OnItemClickL
                 //数据准备完成
                 handler.sendEmptyMessage(AUDIOMSG);
             }
-        }.start();
+        }.start();*/
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                String[] musicInfo={MediaStore.Audio.Media.TITLE,
+                        MediaStore.Audio.Media.ARTIST,
+                        MediaStore.Audio.Media.SIZE,
+                        MediaStore.Audio.Media.DURATION,
+                        MediaStore.Audio.Media.DATA};
+                ContentResolver resolver = context.getContentResolver();
+                Cursor cursor = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,musicInfo,null,null,null);
+                if(cursor!=null&&cursor.getCount()>0){
+                    while (cursor.moveToNext()){
+                        MusicInfo info = new MusicInfo();
+                        info.setTitle(cursor.getString(0));
+                        info.setArtist(cursor.getString(1));
+                        info.setSize(cursor.getLong(2));
+                        info.setDuration(cursor.getLong(3));
+                        info.setPath(cursor.getString(4));
+                        mediaInfos.add(info);
+                    }
+                    cursor.close();
+                }
+                //数据准备完成
+                handler.sendEmptyMessage(AUDIOMSG);
+            }
+        });
+
     }
 
     private void findView() {

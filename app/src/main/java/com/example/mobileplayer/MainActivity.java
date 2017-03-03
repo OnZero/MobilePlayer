@@ -3,6 +3,7 @@ package com.example.mobileplayer;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -31,6 +32,7 @@ public class MainActivity extends SlidingFragmentActivity implements View.OnClic
     private SlidingMenu slidingMenu;
     private NetVideoFreagment netVideoFreagment;
     private ImageButton iv_mainmenu;
+    private android.app.Fragment currentFragment = null;
 
 
     @Override
@@ -77,19 +79,38 @@ public class MainActivity extends SlidingFragmentActivity implements View.OnClic
         setFragments(0);
     }
 
-    /**未做fragment屏蔽**/
+    /**fragment屏蔽**/
     private void setFragments(int fid){
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         if(fid==0){
-            fragmentTransaction.replace(R.id.fl_main_taglist, videoFragments, null).commit();
+            //fragmentTransaction.replace(R.id.fl_main_taglist, videoFragments, null).commit();
+            if(!videoFragments.isAdded()){
+                fragmentTransaction.add(R.id.fl_main_taglist,videoFragments,"videoFragment").commit();
+            }else{
+                fragmentTransaction.hide(currentFragment).show(videoFragments).commit();
+            }
+            currentFragment = videoFragments;
         }else if(fid==1){
-            fragmentTransaction.replace(R.id.fl_main_taglist,audioFragments,null).commit();
+            //fragmentTransaction.replace(R.id.fl_main_taglist,audioFragments,null).commit();
+            if(!audioFragments.isAdded()){
+                fragmentTransaction.add(R.id.fl_main_taglist,audioFragments,"audioFragments").commit();
+            }else{
+                fragmentTransaction.hide(currentFragment).show(audioFragments).commit();
+            }
+            currentFragment = audioFragments;
         }else if(fid==2){
-            fragmentTransaction.replace(R.id.fl_main_taglist,netVideoFreagment,null).commit();
+            //fragmentTransaction.replace(R.id.fl_main_taglist,netVideoFreagment,null).commit();
+            if(!netVideoFreagment.isAdded()){
+                fragmentTransaction.add(R.id.fl_main_taglist,netVideoFreagment,"netVideoFreagment").commit();
+            }else{
+                fragmentTransaction.hide(currentFragment).show(netVideoFreagment).commit();
+            }
+            currentFragment = netVideoFreagment;
         }
 
     }
+
 
 
     @Override

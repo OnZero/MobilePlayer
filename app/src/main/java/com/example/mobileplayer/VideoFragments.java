@@ -23,6 +23,8 @@ import com.romainpiel.titanic.library.Titanic;
 import com.romainpiel.titanic.library.TitanicTextView;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by lenovo on 2017/1/23.
@@ -72,15 +74,15 @@ public class VideoFragments extends Fragment implements AdapterView.OnItemClickL
     }
 
     private void getVideoList() {
-        new Thread(){
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        executorService.execute(new Runnable() {
             @Override
             public void run() {
-                super.run();
                 SystemClock.sleep(1000);
                 String[] videoInfo={MediaStore.Video.Media.DISPLAY_NAME,
-                                    MediaStore.Video.Media.DURATION,
-                                    MediaStore.Video.Media.SIZE,
-                                    MediaStore.Video.Media.DATA};
+                        MediaStore.Video.Media.DURATION,
+                        MediaStore.Video.Media.SIZE,
+                        MediaStore.Video.Media.DATA};
                 ContentResolver resolver = context.getContentResolver();
                 Cursor cursor = resolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,videoInfo,null,null,null);
                 if(cursor!=null&&cursor.getCount()>0){
@@ -97,7 +99,7 @@ public class VideoFragments extends Fragment implements AdapterView.OnItemClickL
                 //数据准备完成
                 handler.sendEmptyMessage(MSG);
             }
-        }.start();
+        });
     }
 
     private void findView() {
